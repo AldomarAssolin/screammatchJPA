@@ -166,7 +166,7 @@ public class Principal {
         series.stream()
                 .sorted(Comparator.comparing(Serie::getTitulo))
                 .forEach(System.out::println);
-        //dadosSeries.forEach(System.out::println);
+        dadosSeries.forEach(System.out::println);
     }
 
 //    public static Categoria fromString(String text) {
