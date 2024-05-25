@@ -78,12 +78,15 @@ public class Principal {
 
     private void buscarSerieWeb() {
         DadosSerie dados = getDadosSerie();
+
         Serie serie = new Serie(dados);
         //dadosSeries.add(dados);
+
+        //Adicionar teste para verificar se a serie ja existe no banco de dados
+
         repositorio.save(serie);
         System.out.println(dados);
     }
-
     private DadosSerie getDadosSerie() {
         System.out.println("Digite o nome da série para busca");
         var nomeSerie = leitura.nextLine();
@@ -168,14 +171,5 @@ public class Principal {
                 .forEach(System.out::println);
         dadosSeries.forEach(System.out::println);
     }
-
-//    public static Categoria fromString(String text) {
-//        for (Categoria categoria : Categoria.values()) {
-//            if (categoria.categoriaOmdb.equalsIgnoreCase(text)) {
-//                return categoria;
-//            }
-//        }
-//        throw new IllegalArgumentException("Nenhuma categoria encontrada para a string fornecida: " + text);
-//    }
 
 }
