@@ -22,9 +22,11 @@ public class Principal {
     private  List<DadosEpisodio> dadosEpisodios = new ArrayList<>();
 
     private SerieRepository repositorio;
+
     public Principal(SerieRepository repositorio) {
         this.repositorio = repositorio;
     }
+
     private List<Serie> series = new ArrayList<>();
 
     public void exibeMenu() {
@@ -86,39 +88,26 @@ public class Principal {
 
     private void buscarSerieWeb() {
 
-
         try {
             DadosSerie dados = getDadosSerie();
-            //Serie serie = new Serie(dados);
+            Serie serie = new Serie(dados);
 
-            ListarSeriesPesquisadas();
+            var tituloSerie = serie.getTitulo();
+            series = repositorio.findAll();
 
-
-            Optional<Serie> serie = series.stream()
-                    .filter(s -> s.getTitulo().toLowerCase().contains(dados.titulo().toLowerCase()))
+            Optional<Serie> novaserie = series.stream()
+                    .filter(s -> s.getTitulo().toLowerCase().contains(tituloSerie.toLowerCase()))
                     .findFirst();
 
-
-            serie.get();
-            if(serie.isPresent()){
-                System.out.printf("Série já existe");
-            }else {
-                System.out.printf("Save");
-                //repositorio.save(serie);
+            if(novaserie.isPresent()){
+                System.out.printf("\n*****Serie já existe*****");
+            }else{
+                repositorio.save(serie);
             }
 
-
-            //Adicionar teste para verificar se a serie ja existe no banco de dados
-//            if (dadosSeries.contains(serie.getTitulo())){
-//                System.out.printf("*****Esta série já existe.*****\n");
-//            }else{
-//                //repositorio.save(serie);
-//            }
         }catch (NullPointerException i){
             System.out.printf("####ERRO: Série não encontrada, Verifique se digitou corretamente.\n");
         }
-
-        //System.out.println(dados);
     }
 
     private DadosSerie getDadosSerie() {
@@ -128,9 +117,6 @@ public class Principal {
             var json = consumo.obterDados(ENDERECO + nomeSerie.replace(" ", "+") + API_KEY);
             DadosSerie dados = conversor.obterDados(json, DadosSerie.class);
 
-//            if(dados.titulo() == null){
-//                System.out.printf("Esta série não foi encontrada, verifique se digitou corretamente.");
-//            }
             return dados;
 
     }
@@ -164,9 +150,6 @@ public class Principal {
                 ********##############************
                 """;
 
-        var numTemporada = 1;
-        var numEpisodio = 1;
-
         System.out.println(menu);
 
         System.out.println("Digite a opção desejada");
@@ -185,7 +168,6 @@ public class Principal {
                     .findFirst();
 
             if(serie.isPresent()){
-
                 var serieEncontrada = serie.get();
                 List<DadosTemporada> temporadas = new ArrayList<>();
 
