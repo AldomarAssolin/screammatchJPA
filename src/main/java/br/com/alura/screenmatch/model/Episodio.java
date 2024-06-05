@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.OptionalDouble;
 import java.util.Scanner;
 
 @Entity
@@ -33,7 +34,7 @@ public class Episodio {
 
         this.titulo = dadosEpisodio.titulo();
         this.numeroEpisodio = dadosEpisodio.numero();
-        this.avaliacao = Double.valueOf(dadosEpisodio.avaliacao());
+        this.avaliacao = OptionalDouble.of(Double.valueOf(dadosEpisodio.avaliacao())).orElse(0);
         this.dataLancamento = LocalDate.parse(dadosEpisodio.dataLancamento());
         this.autores = dadosEpisodio.autores();
         this.duracao = dadosEpisodio.duracao();
@@ -141,33 +142,9 @@ public class Episodio {
         this.dataLancamento = dataLancamento;
     }
 
-    public DadosSerie getDados(){
-
-        Scanner leitura = new Scanner(System.in);
-        ConsumoApi consumo = new ConsumoApi();
-        ConverteDados conversor = new ConverteDados();
-        final String ENDERECO = "https://www.omdbapi.com/?t=";
-        final String API_KEY = "&apikey=c8d95696";
-
-        int numEpisodio = 0;
-        int numTemporada = 0;
-
-        System.out.println("Digite o nome da série para busca");
-        var nomeSerie = leitura.nextLine();
-        System.out.println("\nDigite o numero da temporada: ");
-        numTemporada = Integer.parseInt(leitura.nextLine());
-        System.out.println("\nDigite o numero do episodio: ");
-        numEpisodio = Integer.parseInt(leitura.nextLine());
-
-
-        var json = consumo.obterDados(ENDERECO + nomeSerie + "&season=" + numTemporada + "&Episode=" + numEpisodio + API_KEY);
-        DadosSerie dados = conversor.obterDados(json, DadosSerie.class);
-        return dados;
-    }
-
     @Override
     public String toString() {
-        return "temporada=" + temporada +
+        return "temporada=" + getTemporada() +
                 ", titulo='" + titulo + '\'' +
                 ", numeroEpisodio=" + numeroEpisodio +
                 ", avaliacao=" + avaliacao +

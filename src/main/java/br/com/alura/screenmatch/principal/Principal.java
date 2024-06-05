@@ -17,7 +17,7 @@ public class Principal {
     private ConsumoApi consumo = new ConsumoApi();
     private ConverteDados conversor = new ConverteDados();
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
-    private final String API_KEY = "&apikey=c8d95696";
+    private final String API_KEY = "&apikey=" + System.getenv("API_KEY_OMDB");
     private List<DadosSerie> dadosSeries = new ArrayList<>();
     private  List<DadosEpisodio> dadosEpisodios = new ArrayList<>();
 
@@ -38,13 +38,11 @@ public class Principal {
                 var menu = """
                     **********MENU PRINCIPAL*************
                     1 - Buscar séries
-                    2 - Buscar todos episódios
-                    3 - Pesquisar episodio por temporada
-                    4 - Listar séries pesquisadas
-                    5 - Listar episodios pesquisados
+                    2 - Buscar episódios
+                    3 - Listar séries pesquisadas
                                    \s
                     0 - Sair
-                    *********###############**************
+                    *********###############**************'
                    """;
 
                 System.out.println(menu);
@@ -59,16 +57,10 @@ public class Principal {
                         buscarSerieWeb();
                         break;
                     case 2:
-                        buscarEpisodioPorSerie();
-                        break;
-                    case 3:
                         getDadosEpisodio();
                         break;
-                    case 4:
+                    case 3:
                         ListarSeriesPesquisadas();
-                        break;
-                    case 5:
-                        ListarEpisodioPesquisados();
                         break;
                     case 0:
                         System.out.println("Saindo...");
@@ -106,6 +98,8 @@ public class Principal {
             }
 
         }catch (NullPointerException i){
+            System.out.printf("-####ERRO: Série não encontrada, Verifique se digitou corretamente.\n");
+        }catch (NumberFormatException n){
             System.out.printf("####ERRO: Série não encontrada, Verifique se digitou corretamente.\n");
         }
     }
@@ -173,9 +167,11 @@ public class Principal {
 
                 for (int i = 1; i <= serieEncontrada.getTotalTemporadas() ; i++) {
 
-                    var json = consumo.obterDados(ENDERECO + serieEncontrada.getTitulo().replace(" ", "+"));
+                    var json = consumo.obterDados(ENDERECO + serieEncontrada.getTitulo().replace(" ", "+") + "&season=" + i + API_KEY);
+                    //System.out.printf("\nVarDump: " + json);
                     DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
                     temporadas.add(dadosTemporada);
+                    //System.out.printf("\nVarDump2: " + temporadas);
                 }
                 temporadas.forEach(System.out::println);
 
@@ -185,6 +181,7 @@ public class Principal {
                         .collect(Collectors.toList());
                 serieEncontrada.setEpisodios(episodios);
                 repositorio.save(serieEncontrada);
+                System.out.printf(String.valueOf("Episodio: " + episodios));
             }else{
                 System.out.printf("Série não encontrada!");
             }
@@ -198,11 +195,7 @@ public class Principal {
 
     }
 
-    private void ListarEpisodioPesquisados(){
-
-
-
-    }
+    private void ListarEpisodioPesquisados(){ }
 
 
     private void ListarSeriesPesquisadas(){
