@@ -4,9 +4,7 @@ import br.com.alura.screenmatch.model.*;
 import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,10 +34,11 @@ public class Principal {
         try {
             while (opcao != 0) {
                 var menu = """
-                    **********MENU PRINCIPAL*************
+                    \n**********MENU PRINCIPAL*************
                     1 - Buscar séries
                     2 - Buscar episódios
                     3 - Listar séries pesquisadas
+                    4 - Buscar serie por titulo
                                    \s
                     0 - Sair
                     *********###############**************'
@@ -57,10 +56,13 @@ public class Principal {
                         buscarSerieWeb();
                         break;
                     case 2:
-                        getDadosEpisodio();
+                        buscarEpisodio();
                         break;
                     case 3:
                         ListarSeriesPesquisadas();
+                        break;
+                    case 4:
+                        buscarSeriePorTitulo();
                         break;
                     case 0:
                         System.out.println("Saindo...");
@@ -115,51 +117,33 @@ public class Principal {
 
     }
 
-    private DadosSerie buscarEpisodioPorSerie(){
-        DadosSerie dadosSerie = getDadosSerie();
-        List<DadosTemporada> temporadas = new ArrayList<>();
-
-        for (int i = 1; i <= dadosSerie.totalTemporadas(); i++) {
-            var json = consumo.obterDados(ENDERECO + dadosSerie.titulo().replace(" ", "+") + "&season=" + i + API_KEY);
-            DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
-            temporadas.add(dadosTemporada);
-        }
-        temporadas.forEach(System.out::println);
-        return dadosSerie;
-    }
+//    private DadosSerie buscarEpisodioPorSerie(){
+//        DadosSerie dadosSerie = getDadosSerie();
+//        List<DadosTemporada> temporadas = new ArrayList<>();
+//
+//        for (int i = 1; i <= dadosSerie.totalTemporadas(); i++) {
+//            var json = consumo.obterDados(ENDERECO + dadosSerie.titulo().replace(" ", "+") + "&season=" + i + API_KEY);
+//            DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
+//            temporadas.add(dadosTemporada);
+//        }
+//        temporadas.forEach(System.out::println);
+//        return dadosSerie;
+//    }
 
     private void getEpisodio() {
-        DadosEpisodio dados = getDadosEpisodio();
+        DadosEpisodio dados = buscarEpisodio();
         dadosEpisodios.add(dados);
         System.out.println(dados);
     }
 
 
-    private DadosEpisodio getDadosEpisodio() throws InputMismatchException {
-
-        var menu = """
-                ********MENU EPISODIOS************
-                [0] Digite 0 para voltar
-                [1] Digite 1 para escolher o episodio
-                ********##############************
-                """;
-
-        System.out.println(menu);
-
-        System.out.println("Digite a opção desejada");
-
-        var opcao = leitura.nextInt();
-        leitura.nextLine();
-
-        if(opcao == 1) {
+    private DadosEpisodio buscarEpisodio() throws InputMismatchException {
 
             ListarSeriesPesquisadas();
             System.out.printf("Escolha uma série pelo nome: ");
             var nomeSerie = leitura.nextLine();
 
-            Optional<Serie> serie = series.stream()
-                    .filter(s -> s.getTitulo().toLowerCase().contains(nomeSerie.toLowerCase()))
-                    .findFirst();
+            Optional<Serie> serie = repositorio.findByTituloContainingIgnoreCase(nomeSerie);
 
             if(serie.isPresent()){
                 var serieEncontrada = serie.get();
@@ -168,28 +152,20 @@ public class Principal {
                 for (int i = 1; i <= serieEncontrada.getTotalTemporadas() ; i++) {
 
                     var json = consumo.obterDados(ENDERECO + serieEncontrada.getTitulo().replace(" ", "+") + "&season=" + i + API_KEY);
-                    //System.out.printf("\nVarDump: " + json);
                     DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
                     temporadas.add(dadosTemporada);
-                    //System.out.printf("\nVarDump2: " + temporadas);
                 }
                 temporadas.forEach(System.out::println);
 
                 List<Episodio> episodios = temporadas.stream()
                         .flatMap(d -> d.episodios().stream()
-                                .map(e -> new Episodio(d.numero(), e)))
+                                .map(e -> new Episodio(d.numeroTemporada(), e)))
                         .collect(Collectors.toList());
                 serieEncontrada.setEpisodios(episodios);
                 repositorio.save(serieEncontrada);
-                System.out.printf(String.valueOf("Episodio: " + episodios));
             }else{
                 System.out.printf("Série não encontrada!");
             }
-
-
-        }else{
-            System.out.println("Voltar");
-        }
 
         return null;
 
@@ -204,6 +180,19 @@ public class Principal {
                 .sorted(Comparator.comparing(Serie::getTitulo))
                 .forEach(System.out::println);
         dadosSeries.forEach(System.out::println);
+    }
+
+    private void buscarSeriePorTitulo(){
+        System.out.printf("Escolha uma série pelo nome: ");
+        var nomeSerie = leitura.nextLine();
+
+        Optional<Serie> serieBuscada = repositorio.findByTituloContainingIgnoreCase(nomeSerie);
+
+        if(serieBuscada.isPresent()){
+            System.out.printf("Dados da Serie: " + serieBuscada.get());
+        }else{
+            System.out.printf("Série não encontrada");
+        }
     }
 
 }
