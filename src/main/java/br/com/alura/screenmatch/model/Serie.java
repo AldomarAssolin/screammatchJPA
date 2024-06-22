@@ -120,7 +120,6 @@ public class Serie {
                         ", titulo= '" + titulo + '\'' +
                         ", totalTemporadas= " + totalTemporadas +
                         ", avaliacao= " + avaliacao +
-
                         ", atores='" + atores + '\'' +
                         ", poster= '" + poster + '\'' +
                         ", sinopse= '" + sinopse + '\'' +

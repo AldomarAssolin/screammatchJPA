@@ -4,11 +4,14 @@ import br.com.alura.screenmatch.model.*;
 import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@Component
 public class Principal {
 
     private Scanner leitura = new Scanner(System.in);
@@ -37,17 +40,19 @@ public class Principal {
             while (opcao != 0) {
                 var menu = """
                     \n**********MENU PRINCIPAL*************
-                    1 - Buscar séries
-                    2 - Buscar episódios
+                    1 - Buscar séries pesquisadas
+                    2 - Buscar episódios pesquisados
                     3 - Listar séries pesquisadas
                     4 - Buscar serie por titulo
                     5 - Buscar séries por ator
                     6 - Top 5 séries
                     7 - Buscar por gênero
                     8 - Buscar por quantidade máxima de temporadas
-                    9 - Buscar episódios
+                    9 - Buscar episódios por trecho
                     10 - Top 5 episódios por série
                     11 - Buscar episódio apartir de uma data
+                    20 - Deletar serie
+                    30 - Limpar Banco
                                    \s
                     0 - Sair
                     *********###############**************'
@@ -94,6 +99,12 @@ public class Principal {
                     case 11:
                         buscarEpisodioAposUmaData();
                         break;
+                    case 20:
+                        deletarSeriePorTitulo();
+                        break;
+                    case 30:
+                        limparBanco();
+                        break;
                     case 0:
                         System.out.println("Saindo...");
                         break;
@@ -108,6 +119,29 @@ public class Principal {
         }
 
 
+    }
+
+    @Transactional
+    private void deletarSeriePorTitulo() {
+        System.out.printf("Digite a série a ser deletada: ");
+        var tituloBusca = leitura.nextLine();
+
+      Optional<Serie> serieOptional = repositorio.findByTituloContainingIgnoreCase(tituloBusca);
+
+        if (serieOptional.isPresent()) {
+            Serie serie = serieOptional.get();
+            repositorio.delete(serie);
+            System.out.println("Série deletada com sucesso!");
+        } else {
+            System.out.println("Série não encontrada!");
+        }
+
+        System.out.printf("Série deletada com sucesso!");
+    }
+
+    private void limparBanco() {
+        repositorio.deleteAll();
+        System.out.println("Banco de dados limpo.");
     }
 
     private void buscarSerieWeb() {
@@ -261,7 +295,7 @@ public class Principal {
         episodiosEncontrados.forEach(e ->
                 System.out.printf("Série: %s Temporada %s - Episódio %s - %s\n",
                         e.getSerie().getTitulo(),
-                        e.getTemporada(),
+                        e.getNumero(),
                         e.getNumeroEpisodio(),
                         e.getTitulo()));
 
@@ -277,7 +311,7 @@ public class Principal {
             topEpisodios.forEach(e ->
                     System.out.printf("Série: %s Temporada: %s - Episódio: %s - %s - Avaliacao: %s\n",
                             e.getSerie().getTitulo(),
-                            e.getTemporada(),
+                            e.getNumero(),
                             e.getNumeroEpisodio(),
                             e.getTitulo(),
                             e.getAvaliacao()));
